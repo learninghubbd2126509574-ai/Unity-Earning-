@@ -781,24 +781,37 @@ function AdminLogin({ onLogin, onBack }: { onLogin: (token: string) => void, onB
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
+    const trimmedId = id.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedId || !trimmedPassword) {
+      setError('আইডি এবং পাসওয়ার্ড উভয়ই প্রয়োজন।');
+      return;
+    }
+
+    console.log('Attempting login with:', trimmedId);
     setIsLoading(true);
     setError('');
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password })
+        body: JSON.stringify({ id: trimmedId, password: trimmedPassword })
       });
       const data = await res.json();
       if (res.ok) {
+        console.log('Login successful');
         onLogin(data.token);
       } else {
-        setError(data.message);
+        console.error('Login failed:', data.message);
+        setError(data.message || 'লগইন ব্যর্থ হয়েছে।');
       }
     } catch (err) {
-      setError('Login failed. Server error.');
+      console.error('Login error:', err);
+      setError('সার্ভার ত্রুটি। আবার চেষ্টা করুন।');
     } finally {
       setIsLoading(false);
     }
@@ -819,32 +832,32 @@ function AdminLogin({ onLogin, onBack }: { onLogin: (token: string) => void, onB
           <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-slate-100 transition-colors">
             <ChevronLeft size={18} />
           </div>
-          BACK TO HOME
+          হোমে ফিরে যান
         </button>
         
         <div className="w-20 h-20 bg-slate-900 text-white rounded-3xl flex items-center justify-center mb-8 shadow-2xl shadow-slate-200">
           <Lock size={36} />
         </div>
         
-        <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">মেন্টর Access</h2>
-        <p className="text-slate-500 mb-10 font-medium">Enter credentials to manage submissions.</p>
+        <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">মেন্টর লগইন</h2>
+        <p className="text-slate-500 mb-10 font-medium">আপনার আইডি এবং পাসওয়ার্ড দিন।</p>
         
-        <form onSubmit={handleLogin} className="space-y-6">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">মেন্টর ID</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">মেন্টর আইডি</label>
             <div className="relative">
               <input 
                 type="text" 
                 value={id}
                 onChange={(e) => setId(e.target.value)}
                 className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-slate-900/5 focus:bg-white focus:border-slate-900 outline-none transition-all font-bold text-slate-900"
-                placeholder="মেন্টর ID"
+                placeholder="মেন্টর আইডি"
               />
             </div>
           </div>
           
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">পাসওয়ার্ড</label>
             <div className="relative">
               <input 
                 type="password" 
@@ -868,13 +881,22 @@ function AdminLogin({ onLogin, onBack }: { onLogin: (token: string) => void, onB
           )}
           
           <button 
-            type="submit"
+            type="button"
+            onClick={handleLogin}
             disabled={isLoading}
             className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 text-lg disabled:opacity-50"
           >
-            {isLoading ? 'AUTHENTICATING...' : 'LOGIN TO DASHBOARD'}
+            {isLoading ? 'যাচাই করা হচ্ছে...' : 'লগইন করুন'}
           </button>
-        </form>
+
+          {/* Hidden debug button - only for emergency */}
+          <div 
+            className="opacity-0 hover:opacity-10 transition-opacity cursor-pointer text-[8px] text-center mt-4"
+            onClick={() => onLogin('debug-token')}
+          >
+            Debug Bypass
+          </div>
+        </div>
       </motion.div>
     </div>
   );

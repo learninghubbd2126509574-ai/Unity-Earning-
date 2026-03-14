@@ -57,10 +57,10 @@ async function startServer() {
 
   app.post("/api/admin/login", (req, res) => {
     const { id, password } = req.body;
-    if (id === "admin" && password === "666999") {
+    if (id === "121212" && password === "909090") {
       res.json({ success: true, token: "mock-token-123" });
     } else {
-      res.status(401).json({ message: "Invalid credentials." });
+      res.status(401).json({ message: "ভুল আইডি অথবা পাসওয়ার্ড।" });
     }
   });
 
