@@ -28,28 +28,8 @@ async function startServer() {
   app.post("/api/check-limit", async (req, res) => {
     const { whatsappNumber } = req.body;
     if (whatsappNumber) {
-      try {
-        const data = await fs.readFile(DATA_FILE, "utf-8");
-        const submissions: Submission[] = JSON.parse(data);
-        
-        // Check 24h limit by WhatsApp Number
-        const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-        const recentSubmissions = submissions.filter(s => 
-          s.userInfo.whatsappNumber === whatsappNumber && 
-          new Date(s.submittedAt!).getTime() > oneDayAgo
-        );
-
-        if (recentSubmissions.length >= 2) {
-          return res.status(403).json({ 
-            allowed: false, 
-            message: "আপনি ২৪ ঘন্টার মধ্যে সর্বোচ্চ ২ বার কাজ জমা দিতে পারবেন। দয়া করে ২৪ ঘন্টা পর আবার চেষ্টা করুন।" 
-          });
-        }
-
-        res.json({ allowed: true });
-      } catch (err) {
-        res.status(500).json({ allowed: false, message: "Server error." });
-      }
+      // Limit check removed as per user request
+      res.json({ allowed: true });
     } else {
       res.status(400).json({ allowed: false, message: "WhatsApp number is required." });
     }
@@ -61,19 +41,6 @@ async function startServer() {
       const data = await fs.readFile(DATA_FILE, "utf-8");
       const submissions: Submission[] = JSON.parse(data);
       
-      // Check 24h limit again on submission by WhatsApp Number
-      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-      const recentSubmissions = submissions.filter(s => 
-        s.userInfo.whatsappNumber === submission.userInfo.whatsappNumber && 
-        new Date(s.submittedAt!).getTime() > oneDayAgo
-      );
-
-      if (recentSubmissions.length >= 2) {
-        return res.status(403).json({ 
-          message: "আপনি ২৪ ঘন্টার মধ্যে সর্বোচ্চ ২ বার কাজ জমা দিতে পারবেন। দয়া করে ২৪ ঘন্টা পর আবার চেষ্টা করুন।" 
-        });
-      }
-
       submissions.push({
         ...submission,
         id: Date.now().toString(),
